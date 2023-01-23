@@ -1,0 +1,33 @@
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.CompanyCardContainer {
+    all: unset;
+    border: 1px solid grey;
+    border-radius: 5px;
+    padding: 1rem;
+    width: 20%;
+    margin: 0.5rem;
+    box-sizing: border-box;
+    animation: fadeIn 0.8s;
+}
+
+.CompanyCardContainer:hover {
+    background-color: var(--seaweed-very-light);
+    cursor: pointer;
+}
+
+.CompanyCardContainer:disabled {
+    background-color: var(--seaweed-light);
+}
+
+h3 {
+    margin: 5px 0;
+    border-bottom: 1px solid var(--seaweed-medium);
+}
+
+p {
+    margin: 3px 0;
+}
