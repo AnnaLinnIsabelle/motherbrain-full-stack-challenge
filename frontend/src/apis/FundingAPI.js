@@ -1,11 +1,10 @@
 const baseURL = 'http://localhost:8080/fundings';
 
-export const fetchFundingsByCompany = async (companyName, uuid) => {
+export const fetchFundingsByCompanies = async (companyNames) => {
     const url = new URL(`${baseURL}/search-by-company-name`);
     url.searchParams.set("limit", 20);
     url.searchParams.set("offset", 0);
-    url.searchParams.set("company_name", companyName);
-    url.searchParams.set("company_uuid", uuid);
+    companyNames.forEach(companyName => url.searchParams.append("company_name", companyName));
 
     try {
         const response = await fetch(url);

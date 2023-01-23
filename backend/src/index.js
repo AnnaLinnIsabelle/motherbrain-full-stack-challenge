@@ -140,13 +140,15 @@ async function searchFundingsByCompanyName(queryParams) {
   const limit = queryParams.get("limit");
   const offset = queryParams.get("offset");
   const company_names = queryParams.getAll("company_name");
-  const company_uuid = queryParams.get("company_uuid");
-
+  
   const response = await client.search({
     index: "funding",
     body: {
       size: limit != null ? limit : 10,
       from: offset != null ? offset : 0,
+      sort: {
+        announced_on: { order: 'asc'}
+      },
       query: {
         bool: {
           should: [
@@ -161,7 +163,6 @@ async function searchFundingsByCompanyName(queryParams) {
     },
   });
 
-  // TODO: filter out hits not matching company_uuid if provided
 
   return {
     hits: response.body.hits.hits.map((h) => h._source),
