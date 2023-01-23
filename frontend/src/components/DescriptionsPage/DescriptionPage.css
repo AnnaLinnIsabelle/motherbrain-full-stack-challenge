@@ -35,6 +35,11 @@
     flex-direction: column;
 }
 
+.resultCardContainer {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .selectionBox {
     border-radius: 3px;
     border-style: solid;
