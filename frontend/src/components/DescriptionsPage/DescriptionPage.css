@@ -2,7 +2,8 @@
 .pageContainer {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 30rem auto;
+    padding: 1rem;
 }
 
 .scatterPlotSection {

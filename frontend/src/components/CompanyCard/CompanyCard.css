@@ -21,6 +21,8 @@
 
 .CompanyCardContainer:disabled {
     background-color: var(--seaweed-light);
+    cursor: default;
+    color: var(--seaweed-dark);
 }
 
 h3 {
