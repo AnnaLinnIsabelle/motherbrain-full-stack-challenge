@@ -7,6 +7,7 @@ const client = new Client({
   node: process.env.ES_URL,
 });
 
+
 http.createServer(handle).listen(8080);
 
 async function handle(req, res) {
@@ -24,11 +25,29 @@ async function handle(req, res) {
         );
         break;
 
+      case "GET /orgs/search-by-description":
+        res.writeHead(200).end(
+          JSON.stringify({
+            message: "OK",
+            results: await searchOrgsByDescription(url.searchParams),
+          })
+        );
+        break;
+
       case "GET /fundings":
         res.writeHead(200).end(
           JSON.stringify({
             message: "OK",
             results: await searchFundings(url.searchParams),
+          })
+        );
+        break;
+
+      case "GET /fundings/search-by-company-name":
+        res.writeHead(200).end(
+          JSON.stringify({
+            message: "OK",
+            results: await searchFundingsByCompanyName(url.searchParams),
           })
         );
         break;
@@ -60,6 +79,36 @@ async function searchOrgs(queryParams) {
     body: {
       size: limit != null ? limit : 10,
       from: offset != null ? offset : 0,
+      sort: {
+        funding_total_usd: { order: 'desc'}
+      }
+    },
+  });
+
+  return {
+    hits: response.body.hits.hits.map((h) => h._source),
+    total: response.body.hits.total.value,
+  };
+}
+
+async function searchOrgsByDescription(queryParams) {
+  const limit = queryParams.get("limit");
+  const offset = queryParams.get("offset");
+  const searchTerm = queryParams.get("searchTerm");
+
+  const response = await client.search({
+    index: "org",
+    body: {
+      size: limit != null ? limit : 10,
+      from: offset != null ? offset : 0,
+      sort: {
+        funding_total_usd: { order: 'desc'}
+      },
+      query: {
+        match_phrase: {
+          description: searchTerm
+        }
+      }
     },
   });
 
@@ -80,6 +129,39 @@ async function searchFundings(queryParams) {
       from: offset != null ? offset : 0,
     },
   });
+
+  return {
+    hits: response.body.hits.hits.map((h) => h._source),
+    total: response.body.hits.total.value,
+  };
+}
+
+async function searchFundingsByCompanyName(queryParams) {
+  const limit = queryParams.get("limit");
+  const offset = queryParams.get("offset");
+  const company_names = queryParams.getAll("company_name");
+  const company_uuid = queryParams.get("company_uuid");
+
+  const response = await client.search({
+    index: "funding",
+    body: {
+      size: limit != null ? limit : 10,
+      from: offset != null ? offset : 0,
+      query: {
+        bool: {
+          should: [
+            company_names.map(company_name => ({
+              match_phrase: {
+                company_name: company_name
+              }
+            }))
+          ]
+        }
+      }
+    },
+  });
+
+  // TODO: filter out hits not matching company_uuid if provided
 
   return {
     hits: response.body.hits.hits.map((h) => h._source),
