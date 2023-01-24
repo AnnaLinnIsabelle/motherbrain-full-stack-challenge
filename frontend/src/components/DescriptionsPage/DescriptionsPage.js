@@ -69,8 +69,10 @@ export const DescriptionPage = () => {
                 <LineChartComponent dataSet={lineChartData.dataSet} dataLines={lineChartData.dataLines}/>
             </section>
             <section className='searchSection'>
-                <label>Find companies with the following word in their description:</label>
-                <input type='text' onChange={(e) => setSearchStr(e.target.value)}/>
+                <div className='searchInputContainer'>
+                    <label>Find companies with the following word in their description:</label>
+                    <input className='searchInput' type='text' onChange={(e) => setSearchStr(e.target.value)}/>
+                </div>
                 <div className='resultCardContainer'>
                     {isLoading && <h3>...Searching</h3>}
                     {!isLoading && results.map(org => <CompanyCard key={org.uuid} org={org} onOrgSelect={() => onOrgSelected(org)} isSelected={isOrgSelected(org.uuid)}/>)}
