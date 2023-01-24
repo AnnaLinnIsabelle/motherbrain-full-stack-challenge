@@ -1,11 +1,8 @@
 require("dotenv").config();
 const http = require("http");
 const { URL } = require("url");
-const { Client } = require("@elastic/elasticsearch");
-
-const client = new Client({
-  node: process.env.ES_URL,
-});
+const { searchOrgs, searchOrgsByDescription } = require("./orgService");
+const { searchFundings, searchFundingsByCompanyName } = require("./fundingService");
 
 
 http.createServer(handle).listen(8080);
@@ -20,7 +17,7 @@ async function handle(req, res) {
         res.writeHead(200).end(
           JSON.stringify({
             message: "OK",
-            results: await searchOrgs(url.searchParams),
+            results: await handleGetOrgsRequest(url.searchParams),
           })
         );
         break;
@@ -29,7 +26,7 @@ async function handle(req, res) {
         res.writeHead(200).end(
           JSON.stringify({
             message: "OK",
-            results: await searchOrgsByDescription(url.searchParams),
+            results: await handleSearchOrgsByDescriptionRequest(url.searchParams),
           })
         );
         break;
@@ -38,7 +35,7 @@ async function handle(req, res) {
         res.writeHead(200).end(
           JSON.stringify({
             message: "OK",
-            results: await searchFundings(url.searchParams),
+            results: await handleGetFundingsRequest(url.searchParams),
           })
         );
         break;
@@ -47,7 +44,7 @@ async function handle(req, res) {
         res.writeHead(200).end(
           JSON.stringify({
             message: "OK",
-            results: await searchFundingsByCompanyName(url.searchParams),
+            results: await handleSearchFundingsByCompanyRequest(url.searchParams),
           })
         );
         break;
@@ -70,102 +67,36 @@ async function handle(req, res) {
   }
 }
 
-async function searchOrgs(queryParams) {
+async function handleGetOrgsRequest(queryParams) {
   const limit = queryParams.get("limit");
   const offset = queryParams.get("offset");
 
-  const response = await client.search({
-    index: "org",
-    body: {
-      size: limit != null ? limit : 10,
-      from: offset != null ? offset : 0,
-      sort: {
-        funding_total_usd: { order: 'desc'}
-      }
-    },
-  });
-
-  return {
-    hits: response.body.hits.hits.map((h) => h._source),
-    total: response.body.hits.total.value,
-  };
+  results = await searchOrgs(limit, offset);
+  return results;
 }
 
-async function searchOrgsByDescription(queryParams) {
+async function handleSearchOrgsByDescriptionRequest(queryParams) {
   const limit = queryParams.get("limit");
   const offset = queryParams.get("offset");
   const searchTerm = queryParams.get("searchTerm");
 
-  const response = await client.search({
-    index: "org",
-    body: {
-      size: limit != null ? limit : 10,
-      from: offset != null ? offset : 0,
-      sort: {
-        funding_total_usd: { order: 'desc'}
-      },
-      query: {
-        match_phrase: {
-          description: searchTerm
-        }
-      }
-    },
-  });
-
-  return {
-    hits: response.body.hits.hits.map((h) => h._source),
-    total: response.body.hits.total.value,
-  };
+  results = await searchOrgsByDescription(searchTerm, limit, offset);
+  return results;
 }
 
-async function searchFundings(queryParams) {
+async function handleGetFundingsRequest(queryParams) {
   const limit = queryParams.get("limit");
   const offset = queryParams.get("offset");
 
-  const response = await client.search({
-    index: "funding",
-    body: {
-      size: limit != null ? limit : 10,
-      from: offset != null ? offset : 0,
-    },
-  });
-
-  return {
-    hits: response.body.hits.hits.map((h) => h._source),
-    total: response.body.hits.total.value,
-  };
+  results = await searchFundings(limit, offset);
+  return results;
 }
 
-async function searchFundingsByCompanyName(queryParams) {
+async function handleSearchFundingsByCompanyRequest(queryParams) {
   const limit = queryParams.get("limit");
   const offset = queryParams.get("offset");
   const company_names = queryParams.getAll("company_name");
-  
-  const response = await client.search({
-    index: "funding",
-    body: {
-      size: limit != null ? limit : 10,
-      from: offset != null ? offset : 0,
-      sort: {
-        announced_on: { order: 'asc'}
-      },
-      query: {
-        bool: {
-          should: [
-            company_names.map(company_name => ({
-              match_phrase: {
-                company_name: company_name
-              }
-            }))
-          ]
-        }
-      }
-    },
-  });
 
-
-  return {
-    hits: response.body.hits.hits.map((h) => h._source),
-    total: response.body.hits.total.value,
-  };
+  results = await searchFundingsByCompanyName(company_names, limit, offset);
+  return results;
 }
